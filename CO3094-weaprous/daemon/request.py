@@ -71,7 +71,7 @@ class Request():
             lines = request.splitlines()
             first_line = lines[0]
             method, path, version = first_line.split()
-
+ 
             if path == '/':
                 path = '/index.html'
         except Exception:
