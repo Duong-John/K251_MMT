@@ -102,11 +102,6 @@ class Request():
         #
         # TODO manage the webapp hook in this mounting point
         #
-        # Added by Duong 23/10/2025
-        method_and_path = self.extract_request_line(request)
-        self.method = method_and_path[0]
-        self.path = method_and_path[1]
-        
         if not routes == {}:
             self.routes = routes
             self.hook = routes.get((self.method, self.path))
