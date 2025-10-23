@@ -199,6 +199,7 @@ def run_proxy(ip, port, routes):
             #        using multi-thread programming with the
             #        provided handle_client routine
             #
+            # Added by Duong 23/10/2025
             handle_client(ip, port, conn, addr, routes) # Added by Duong 23/10/2025
     except socket.error as e:
       print("Socket error: {}".format(e))
