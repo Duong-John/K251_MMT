@@ -321,6 +321,12 @@ class Response():
         :rtype bytes: complete HTTP response using prepared headers and content.
         """
         #Added by Duong 26/10/2025
+		if request.path.endswith('login'):
+            if not request.auth:
+                return self.build_unauthorized()
+            else:
+                request.path = '/index.html'
+                request.method = 'GET'
         path = request.path
         # if not request.auth:
         #     return self.build_unauthorized()
