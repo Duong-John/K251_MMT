@@ -238,7 +238,7 @@ class Response():
                 "Cache-Control": "no-cache",
                 "Content-Type": "{}".format(self.headers['Content-Type']),
                 "Content-Length": "{}".format(len(self._content)),
-#                "Cookie": "{}".format(reqhdr.get("Cookie", "sessionid=xyz789")), #dummy cooki
+                # "Cookie": "{}".format(reqhdr.get("Cookie", "sessionid=xyz789")), #dummy cooki
         #
         # TODO prepare the request authentication
         #
@@ -250,7 +250,10 @@ class Response():
                 "Warning": "199 Miscellaneous warning",
                 "User-Agent": "{}".format(reqhdr.get("User-Agent", "Chrome/123.0.0.0")),
             }
-
+        #Added by Duong 26/10/2025
+        if request.auth:
+            if headers.get("Set-Cookie", ' ') == ' ':
+                headers["Set-Cookie"] = "{}".format("sessionid=xyz789")
         # Header text alignment
             #
             #  TODO: implement the header building to create formated
@@ -288,6 +291,25 @@ class Response():
                 "\r\n"
                 "404 Not Found"
             ).encode('utf-8')
+    
+    #Added by Duong 26/10/2025
+    def build_unauthorized(self):
+        """
+        Constructs a standard 401 Unauthorized page HTTP response.
+
+        :rtype bytes: Encoded 404 response.
+        """
+
+        return (
+                "HTTP/1.1 401 Unauthorized\r\n"
+                "Accept-Ranges: bytes\r\n"
+                "Content-Type: text/html\r\n"
+                "Content-Length: 16\r\n"
+                "Cache-Control: max-age=86000\r\n"
+                "Connection: close\r\n"
+                "\r\n"
+                "401 Unauthorized"
+            ).encode('utf-8')
 
 
     def build_response(self, request):
@@ -298,8 +320,17 @@ class Response():
 
         :rtype bytes: complete HTTP response using prepared headers and content.
         """
-
+        #Added by Duong 26/10/2025
         path = request.path
+        # if not request.auth:
+        #     return self.build_unauthorized()
+        if path.endswith('test.html'):
+            # print("[Respone-Build]:")
+            # print(self.cookies)
+            # if self.cookies == {}:
+            #     return self.build_unauthorized()
+            if request.headers["Cookie"] == '':
+                return self.build_unauthorized()
 
         mime_type = self.get_mime_type(path)
         print("[Response] {} path {} mime_type {}".format(request.method, request.path, mime_type))
@@ -314,6 +345,7 @@ class Response():
         #
         # TODO: add support objects
         #
+        #Added by Duong 23/10/2025
         elif mime_type == 'image/x-icon':
             base_dir = self.prepare_content_type(mime_type = 'image/x-icon')
         elif mime_type == 'image/png':

@@ -60,6 +60,11 @@ def hello(headers, body):
     """
     print("[SampleApp] ['PUT'] Hello in {} to {}".format(headers, body))
 
+#Added by Duong 26/10/2025
+@app.route('/test', methods=['GET'])
+def hello(headers, body):
+    print("[SampleApp] ['TEST'] Testing web in {} to {}".format(headers, body))
+
 if __name__ == "__main__":
     # Parse command-line arguments to configure server IP and port
     parser = argparse.ArgumentParser(prog='Backend', description='', epilog='Beckend daemon')

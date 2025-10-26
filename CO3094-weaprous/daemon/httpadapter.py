@@ -105,7 +105,8 @@ class HttpAdapter:
         # Handle the request
         msg = conn.recv(1024).decode()
         req.prepare(msg, routes)
-
+        if not routes:
+            print("[Error]: Routes map is empty.")
         # Handle request hook
         if req.hook:
             print("[HttpAdapter] hook in route-path METHOD {} PATH {}".format(req.hook._route_path,req.hook._route_methods))
@@ -115,13 +116,14 @@ class HttpAdapter:
             #
 
         # Build response
+        resp.cookies = self.extract_cookies(req, resp)
         response = resp.build_response(req)
 
         #print(response)
         conn.sendall(response)
         conn.close()
 
-    @property
+    # @property
     def extract_cookies(self, req, resp):
         """
         Build cookies from the :class:`Request <Request>` headers.

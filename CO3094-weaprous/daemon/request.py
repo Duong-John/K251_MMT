@@ -46,6 +46,7 @@ class Request():
         "body",
         "routes",
         "hook",
+        "auth", #Added by Duong 26/10/2025
     ]
 
     def __init__(self):
@@ -65,19 +66,45 @@ class Request():
         self.routes = {}
         #: Hook point for routed mapped-path
         self.hook = None
+        #Added by Duong 26/10/2025
+        self.auth = False
 
     def extract_request_line(self, request):
         try:
             lines = request.splitlines()
             first_line = lines[0]
             method, path, version = first_line.split()
- 
+
+            if '?' in path:
+                path = path.split('?', 1)[0]
+
             if path == '/':
                 path = '/index.html'
+            #Added by Duong 26/10/2025
+            if path == '/test':
+                path = '/test.html'
         except Exception:
             return None, None
 
+        
         return method, path, version
+    
+    #Added by Duong 26/10/2025
+    def extract_and_validate_username_password(self, request):
+        form_data = {}
+        try:
+            header_part, body_part = request.split('\r\n\r\n', 1)
+        except ValueError:
+            return None
+
+        pairs = body_part.split('&')
+        for pair in pairs:
+            if '=' in pair:
+                key, value = pair.split('=', 1)
+                form_data[key] = value
+                
+        return True if form_data['username'] == "Duong" and form_data['password'] == "14112005" else False
+
              
     def prepare_headers(self, request):
         """Prepares the given HTTP headers."""
@@ -95,13 +122,14 @@ class Request():
         # Prepare the request line from the request header
         self.method, self.path, self.version = self.extract_request_line(request)
         print("[Request] {} path {} version {}".format(self.method, self.path, self.version))
-
+        print("[Custom Request]:" + request)
         #
         # @bksysnet Preapring the webapp hook with WeApRous instance
         # The default behaviour with HTTP server is empty routed
         #
         # TODO manage the webapp hook in this mounting point
         #
+        
         if not routes == {}:
             self.routes = routes
             self.hook = routes.get((self.method, self.path))
@@ -110,8 +138,17 @@ class Request():
             # ...
             #
 
+        #Added by Duong 26/10/2025
+        if self.path == '/login':
+            self.auth = self.extract_and_validate_username_password(request)
+            if self.auth:
+                self.method = "GET"
+                self.path = "/index.html"
+        #Added by Duong 26/10/2025
         self.headers = self.prepare_headers(request)
         cookies = self.headers.get('cookie', '')
+        print("[Request-Cookie]: " + cookies if cookies != '' else "No cookie" )
+        self.headers["Cookie"] = cookies
             #
             #  TODO: implement the cookie function here
             #        by parsing the header            #
