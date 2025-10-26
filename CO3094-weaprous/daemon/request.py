@@ -141,9 +141,7 @@ class Request():
         #Added by Duong 26/10/2025
         if self.path == '/login':
             self.auth = self.extract_and_validate_username_password(request)
-            if self.auth:
-                self.method = "GET"
-                self.path = "/index.html"
+
         #Added by Duong 26/10/2025
         self.headers = self.prepare_headers(request)
         cookies = self.headers.get('cookie', '')
