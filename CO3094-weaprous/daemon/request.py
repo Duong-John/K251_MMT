@@ -144,9 +144,15 @@ class Request():
             #
 
         #Added by Duong 26/10/2025
+<<<<<<< HEAD
             # if self.auth:
             #     self.method = "GET"
             #     self.path = "/index.html"
+=======
+        if self.path == '/login':
+            self.auth = self.extract_and_validate_username_password(request)
+
+>>>>>>> 87833ae9ade5da67d69ef571f23053fe81d07a76
         #Added by Duong 26/10/2025
         self.headers = self.prepare_headers(request)
         self.body = self.prepare_body(request)
