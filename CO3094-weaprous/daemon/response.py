@@ -346,12 +346,12 @@ class Response():
                 request.path = '/index.html'
                 request.method = 'GET'
         #Added by Duong 26/10/2025
-		if request.path.endswith('login'):
-            if not request.auth:
-                return self.build_unauthorized()
-            else:
-                request.path = '/index.html'
-                request.method = 'GET'
+		# if request.path.endswith('login'):
+  #           if not request.auth:
+  #               return self.build_unauthorized()
+  #           else:
+  #               request.path = '/index.html'
+  #               request.method = 'GET'
         path = request.path
         
         
