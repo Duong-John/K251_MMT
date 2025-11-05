@@ -1,33 +1,95 @@
 body {
-	background-color: #f0f0f2;
-	margin: 0;
-	padding: 0;
-	font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-}
-div {
-	width: 600px;
-	margin: 5em auto;
-	padding: 2em;
-	background-color: #fdfdff;
-	border-radius: 0.5em;
-	box-shadow: 2px 3px 7px 2px rgba(0,0,0,0.02);
-}
-a:link, a:visited {
-	color: #38488f;
-	text-decoration: none;
-}
+
 .container {
-	max-width: 800px;
-	margin: 50px auto;
-	background: white;
-	padding: 20px;
-	box-shadow: 0 0 10px rgba(0,0,0,0.1);
-	text-align: center;
+  background: rgba(25, 25, 30, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 40px 60px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  max-width: 650px;
 }
-img {
-	max-width: 100%;  
-	height: auto;
-	border-radius: 8px;
-	margin-top: 20px;
+
+
+h1 {
+  font-size: 2em;
+  color: #00bcd4;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+p {
+  color: #cfd8dc;
+  margin-bottom: 30px;
+}
+
+
+.welcome-img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  box-shadow: 0 0 20px rgba(0, 188, 212, 0.3);
+}
+
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-weight: 600;
+}
+
+
+.btn.register {
+  background: linear-gradient(45deg, #00796b, #26a69a);
+  color: white;
+}
+
+.btn.login {
+  background: linear-gradient(45deg, #1565c0, #42a5f5);
+  color: white;
+}
+
+.btn.test {
+  background: linear-gradient(45deg, #8e24aa, #ba68c8);
+  color: white;
+}
+
+.btn.return {
+  margin-top: 30px; 
+  padding: 8px 16px; 
+  background: linear-gradient(45deg, #8e24aa, #ba68c8);
+  color: white;
+}
+
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(255, 255, 255, 0.2);
+}
+
+
+.inline-form {
+  display: inline;
 }

@@ -19,7 +19,7 @@ http settings (headers, bodies). The adapter supports both
 raw URL paths and RESTful route definitions, and integrates with
 Request and Response objects to handle client-server communication.
 """
-
+import socket
 from .request import Request
 from .response import Response
 from .dictionary import CaseInsensitiveDict
@@ -81,6 +81,7 @@ class HttpAdapter:
         self.response = Response()
 
     def handle_client(self, conn, addr, routes):
+        # print("[Custom-HttpAdapter]: Called HttpAdapter")
         """
         Handle an incoming client connection.
 
@@ -102,15 +103,43 @@ class HttpAdapter:
         # Response handler
         resp = self.response
 
-        # Handle the request
+# try:
+#     # Handle the request
+#     try:
         msg = conn.recv(1024).decode()
+        # if not msg:
+        #     return 
+    # except socket.timeout:
+        # print(f"[{self.__class__.__name__}] Connection from {addr} timed out while waiting for data.")
+        # conn.sendall(b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n")
+        # return
+            
+
         req.prepare(msg, routes)
+        # print("[HTTP-DEMO]:")
+        # print(addr)
         if not routes:
             print("[Error]: Routes map is empty.")
         # Handle request hook
         if req.hook:
             print("[HttpAdapter] hook in route-path METHOD {} PATH {}".format(req.hook._route_path,req.hook._route_methods))
-            req.hook(headers = "bksysnet",body = "get in touch")
+
+            req.body['IP'] = self.connaddr[0]
+            req.body['Port'] = self.connaddr[1]
+
+            return_value = req.hook(req.headers, req.body)
+            if type(return_value) is tuple:
+                print(f"[HttpAdapter] Dynamic route detected, content_type={return_value[0]}")
+                # req.path = "/api/dynamic_response.json"      
+                req.body_override = return_value[1].encode('utf-8')  
+                req.content_type_override = return_value[0]  
+            elif return_value == 'Login Success' or return_value == 'Register Success':
+                req.auth = True
+            elif return_value == 'Login Fail' or return_value == 'Register Fail':
+                req.auth = False
+            elif return_value == '/chat.html':
+                req.path = return_value
+            
             #
             # TODO: handle for App hook here
             #
@@ -121,7 +150,12 @@ class HttpAdapter:
 
         #print(response)
         conn.sendall(response)
+
+    # except Exception as e:
+    #     print(f"[{self.__class__.__name__}] Unhandled exception for {addr}: {e}")
+    # finally:
         conn.close()
+        print("[HttpAdapter] has closed the connection")
 
     # @property
     def extract_cookies(self, req, resp):

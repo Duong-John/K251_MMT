@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Register | HCMUT Expression Chat</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <div class="container form-container">
+    <h1>Register</h1>
+    <p>Create a new account to join the HCMUT Expression Chat community.</p>
+
+    <form method="POST" action="/register" class="auth-form">
+      <label>Username</label>
+      <input name="username" type="text" placeholder="Choose a username" required>
+
+      <label>Password</label>
+      <input name="password" type="password" placeholder="Create a password" required>
+
+      <input type="submit" value="Register" class="btn register">
+    </form>
+
+    <p class="small-text">Already have an account?
+      <a href="/login.html">Login here</a>.
+    </p>
+  </div>
+</body>
+</html>

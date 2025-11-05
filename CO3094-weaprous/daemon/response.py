@@ -254,6 +254,12 @@ class Response():
         if request.auth:
             if headers.get("Set-Cookie", ' ') == ' ':
                 headers["Set-Cookie"] = "{}".format("sessionid=xyz789")
+        
+        if request.body_override:
+            headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+            headers["Access-Control-Allow-Credentials"] = "true"
+            headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+            headers["Access-Control-Allow-Headers"] = "Content-Type"
         # Header text alignment
             #
             #  TODO: implement the header building to create formated
@@ -283,6 +289,7 @@ class Response():
 
         return (
                 "HTTP/1.1 404 Not Found\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
                 "Accept-Ranges: bytes\r\n"
                 "Content-Type: text/html\r\n"
                 "Content-Length: 13\r\n"
@@ -297,11 +304,12 @@ class Response():
         """
         Constructs a standard 401 Unauthorized page HTTP response.
 
-        :rtype bytes: Encoded 404 response.
+        :rtype bytes: Encoded 401.
         """
 
         return (
                 "HTTP/1.1 401 Unauthorized\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
                 "Accept-Ranges: bytes\r\n"
                 "Content-Type: text/html\r\n"
                 "Content-Length: 16\r\n"
@@ -320,10 +328,27 @@ class Response():
 
         :rtype bytes: complete HTTP response using prepared headers and content.
         """
+        if request.body_override:
+            
+            if request.headers["Cookie"] == '':
+                print('--------------------------------------------')
+                return self.build_unauthorized()
+            print("[Response] Building a dynamic response from hook.")
+            self._content = request.body_override
+            self.headers['Content-Type'] = request.content_type_override
+            self._header = self.build_response_header(request) 
+            return self._header + self._content
+        
+        if request.path.endswith('login') or request.path.endswith('register'):
+            if not request.auth:
+                return self.build_unauthorized()
+            else:
+                request.path = '/index.html'
+                request.method = 'GET'
         #Added by Duong 26/10/2025
         path = request.path
-        # if not request.auth:
-        #     return self.build_unauthorized()
+        
+        
         if path.endswith('test.html'):
             # print("[Respone-Build]:")
             # print(self.cookies)

@@ -85,13 +85,16 @@ def run_backend(ip, port, routes):
 
         while True:
             conn, addr = server.accept()
+            print(conn, addr)
             #
             #  TODO: implement the step of the client incomping connection
             #        using multi-thread programming with the
             #        provided handle_client routine
             #
             # Added by Duong 23/10/2025
-            handle_client(ip, port, conn, addr, routes)
+            # handle_client(ip, port, conn, addr, routes)
+            client_thread = threading.Thread(target=handle_client, args=(ip, port, conn, addr, routes))
+            client_thread.start()
     except socket.error as e:
       print("Socket error: {}".format(e))
 

@@ -44,7 +44,7 @@ from collections import defaultdict
 
 from daemon import create_proxy
 
-PROXY_PORT = 8080
+PROXY_PORT = 3000
 
 
 def parse_virtual_hosts(config_file):
@@ -99,6 +99,8 @@ def parse_virtual_hosts(config_file):
     for key, value in routes.items():
         print(key, value)
     return routes
+
+
 
 
 if __name__ == "__main__":

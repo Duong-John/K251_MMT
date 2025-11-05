@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Chat</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      background-color: #0d1117;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    .chat-container {
+      width: 600px;
+      margin: 40px auto;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+    }
+    .messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg {
+      padding: 10px 14px;
+      border-radius: 15px;
+      max-width: 75%;
+    }
+    .msg.me {
+      background: #1976d2;
+      align-self: flex-end;
+    }
+    .msg.other {
+      background: #424242;
+      align-self: flex-start;
+    }
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+    .input-area input {
+      flex-grow: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+    }
+    .input-area button {
+      background: #00bcd4;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chat-container">
+    <h2 id="chat-with">Chat</h2>
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <input type="text" id="messageInput" placeholder="Type a message...">
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get('target');
+
+    document.getElementById('chat-with').textContent = `Chat with ${target}`;
+
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Hàm hiển thị tin nhắn trong khung chat
+    function appendMessage(who, text) {
+        const msg = document.createElement('div');
+        msg.className = `msg ${who}`;
+        msg.textContent = text;
+        messagesDiv.appendChild(msg);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', async () => {
+        const msg = input.value.trim();
+        if (!msg) return;
+        
+        appendMessage('me', msg);
+        input.value = '';
+
+        try {
+        const response = await fetch('http://localhost:8000/send_message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            credentials: 'include',
+            body: `target=${encodeURIComponent(target)}&msg=${encodeURIComponent(msg)}`
+        });
+
+        if (!response.ok) {
+            appendMessage('other', '[Error] Failed to send message.');
+            console.error('HTTP error', response.status);
+            return;
+        }
+
+        const result = await response.text();
+        console.log('[Server reply]', result);
+        } catch (err) {
+        appendMessage('other', '[Error] Cannot send message.');
+        console.error('Send error:', err);
+        }
+    });
+    </script>
+
+  <!-- <script>
+    const params = new URLSearchParams(window.location.search);
+    const target = params.get('target');
+    document.getElementById('chat-with').textContent = `Chat with ${target}`;
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    function appendMessage(who, text) {
+      const msg = document.createElement('div');
+      msg.className = `msg ${who}`;
+      msg.textContent = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // sendBtn.addEventListener('click', async () => {
+    //   const msg = input.value.trim();
+    //   if (!msg) return;
+    //   appendMessage('me', msg);
+    //   input.value = '';
+
+    //   try {
+    //     const response = await fetch(`/send_message?target=${target}&msg=${encodeURIComponent(msg)}`, {
+    //       method: 'GET',
+    //       credentials: 'include'
+    //     });
+    //     if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    //   } catch (err) {
+    //     appendMessage('other', '[Error] Failed to send message.');
+    //     console.error(err);
+    //   }
+    // });
+    sendBtn.addEventListener('click', async () => {
+    const msg = messageInput.value.trim();
+    if (!msg || !selectedPeer) return;
+
+    appendMessage('me', msg);
+    messageInput.value = '';
+
+    try {
+        const response = await fetch('http://localhost:8000/send_message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `target=${encodeURIComponent(selectedPeer)}&msg=${encodeURIComponent(msg)}`
+        });
+        const result = await response.text();
+        console.log(result);
+    } catch (err) {
+        console.error('Send error:', err);
+    }
+    });
+  </script> -->
+</body>
+</html>

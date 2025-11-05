@@ -1,13 +1,114 @@
-<html>
-    <head>
-        <title>Test chatting website</title>
-    </head>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Active Peers | HCMUT Expression Chat</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .peer-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .peer-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 12px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .peer-card:hover {
+      transform: translateY(-3px);
+      background: rgba(0, 188, 212, 0.15);
+    }
+    .peer-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00bcd4, #26c6da);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #fff;
+    }
+    .peer-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .peer-name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #00e5ff;
+    }
+    .peer-ip {
+      font-size: 0.9rem;
+      color: #b0bec5;
+    }
+  </style>
+</head>
 
-    <body>
-        <p> Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sunt sed libero ab? Non accusamus voluptate fuga unde, commodi omnis, temporibus fugit dolores repudiandae facilis assumenda nesciunt quisquam doloremque corrupti vel. </p>
-        <p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Minus nesciunt nobis dolores? Temporibus, nihil! Nulla beatae cum pariatur odio maiores deleniti vero? Laborum architecto praesentium at nulla veniam sequi vero. </p>
-        <form method="GET" action="/">
-            <input type="submit" value="Return">
-        </form>
-    </body>
+<body>
+  <div class="container form-container">
+    <h1>Active Peers</h1>
+    <p>List of currently online users.</p>
+
+    <div id="peerList" class="peer-list">
+      <!-- Dynamic peers appear here -->
+    </div>
+    <form method="GET" action="/" class="return-form">
+      <input type="submit" value="Return to Home" class="btn return">
+    </form>
+  </div>
+
+  <script>
+    async function loadPeers() {
+      try {
+        const response = await fetch('http://localhost:8000/peers', {method: 'GET',credentials: 'include'});
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        const container = document.getElementById('peerList');
+        container.innerHTML = ''; // clear
+
+        const peers = Object.entries(data);
+        if (peers.length === 0) {
+          container.innerHTML = '<p>No active peers found.</p>';
+          return;
+        }
+
+        peers.forEach(([name, info]) => {
+          const card = document.createElement('div');
+          card.className = 'peer-card';
+          card.innerHTML = `
+            <div class="peer-avatar">${name[0].toUpperCase()}</div>
+            <div class="peer-info">
+              <span class="peer-name">${name}</span>
+              <span class="peer-ip">IP: ${info.ip} | Port: ${info.port}</span>
+            </div>
+          `;
+
+          card.addEventListener('click', () => {window.location.href = `/connect?target=${encodeURIComponent(name)}`;});
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error('Failed to load peers:', err);
+        // const peerListElement = document.getElementById('peerList');
+        // peerListElement.innerHTML = `
+        //   <li style="color: red; font-weight: bold;">
+        //     401 Unauthorized - Please login first.
+        //   </li>
+        // `;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadPeers);
+  </script>
+</body>
 </html>

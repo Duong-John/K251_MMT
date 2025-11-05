@@ -47,6 +47,8 @@ class Request():
         "routes",
         "hook",
         "auth", #Added by Duong 26/10/2025
+        "body_override", #Added by Duong 26/10/2025
+        "content_type_override",
     ]
 
     def __init__(self):
@@ -69,6 +71,10 @@ class Request():
         #Added by Duong 26/10/2025
         self.auth = False
 
+        self.body_override = None
+
+        self.content_type_override = None
+
     def extract_request_line(self, request):
         try:
             lines = request.splitlines()
@@ -77,33 +83,33 @@ class Request():
 
             if '?' in path:
                 path = path.split('?', 1)[0]
-
+        
             if path == '/':
                 path = '/index.html'
             #Added by Duong 26/10/2025
             if path == '/test':
                 path = '/test.html'
         except Exception:
-            return None, None
+            return None, None, None
 
         
         return method, path, version
     
     #Added by Duong 26/10/2025
-    def extract_and_validate_username_password(self, request):
-        form_data = {}
-        try:
-            header_part, body_part = request.split('\r\n\r\n', 1)
-        except ValueError:
-            return None
+    # def extract_and_validate_username_password(self, request):
+    #     form_data = {}
+    #     try:
+    #         header_part, body_part = request.split('\r\n\r\n', 1)
+    #     except ValueError:
+    #         return None
 
-        pairs = body_part.split('&')
-        for pair in pairs:
-            if '=' in pair:
-                key, value = pair.split('=', 1)
-                form_data[key] = value
+    #     pairs = body_part.split('&')
+    #     for pair in pairs:
+    #         if '=' in pair:
+    #             key, value = pair.split('=', 1)
+    #             form_data[key] = value
                 
-        return True if form_data['username'] == "Duong" and form_data['password'] == "14112005" else False
+    #     return True if form_data['username'] == "Duong" and form_data['password'] == "14112005" else False
 
              
     def prepare_headers(self, request):
@@ -129,7 +135,6 @@ class Request():
         #
         # TODO manage the webapp hook in this mounting point
         #
-        
         if not routes == {}:
             self.routes = routes
             self.hook = routes.get((self.method, self.path))
@@ -139,30 +144,76 @@ class Request():
             #
 
         #Added by Duong 26/10/2025
-        if self.path == '/login':
-            self.auth = self.extract_and_validate_username_password(request)
-            if self.auth:
-                self.method = "GET"
-                self.path = "/index.html"
+            # if self.auth:
+            #     self.method = "GET"
+            #     self.path = "/index.html"
         #Added by Duong 26/10/2025
         self.headers = self.prepare_headers(request)
-        cookies = self.headers.get('cookie', '')
-        print("[Request-Cookie]: " + cookies if cookies != '' else "No cookie" )
-        self.headers["Cookie"] = cookies
+        self.body = self.prepare_body(request)
+        # cookies = self.headers.get('cookie', '')
+        # print("[Request-Cookie]: " + cookies if cookies != '' else "No cookie" )
+        self.headers["Cookie"] = self.prepare_cookies(self.headers)
             #
             #  TODO: implement the cookie function here
             #        by parsing the header            #
 
         return
 
-    def prepare_body(self, data, files, json=None):
-        self.prepare_content_length(self.body)
-        self.body = body
-        #
-        # TODO prepare the request authentication
-        #
-	# self.auth = ...
-        return
+    def prepare_body(self, request):
+        form_data = {}
+        if self.path == '/connect':
+            # print('[From-Request-Prepare]:')
+            # print(request.splitlines()[0])
+            try:
+                first_line = request.splitlines()[0]  # "GET /connect?target=Duong HTTP/1.1"
+                _, full_path, _ = first_line.split()
+
+                if '?' in full_path:
+                    path, query = full_path.split('?', 1)
+                    pairs = query.split('&')
+                    for pair in pairs:
+                        if '=' in pair:
+                            key, value = pair.split('=', 1)
+                            form_data[key] = value
+                
+                return form_data
+            except Exception as e:
+                print(f"[Request] Query parse error: {e}")
+        
+        # elif self.data == '/send_message':
+        #     try:
+        #         header_part, body_part = request.split('\r\n\r\n', 1)
+        #         pairs = body_part.split('&')
+        #         for pair in pairs:
+        #             if '=' in pair:
+        #                 key, value = pair.split('=', 1)
+        #                 form_data[key] = value
+        #     except Exception as e:
+        #         print(f"[Request] Body parse error in /send_message: {e}")
+
+        else:
+            try:
+                header_part, body_part = request.split('\r\n\r\n', 1)
+            except ValueError:
+                return None
+
+            pairs = body_part.split('&')
+            for pair in pairs:
+                if '=' in pair:
+                    key, value = pair.split('=', 1)
+                    form_data[key] = value
+                    
+            return form_data
+
+
+    # def prepare_body(self, data, files, json=None):
+    #     self.prepare_content_length(self.body)
+    #     self.body = body
+    #     #
+    #     # TODO prepare the request authentication
+    #     #
+	# # self.auth = ...
+    #     return
 
 
     def prepare_content_length(self, body):
@@ -181,5 +232,10 @@ class Request():
 	# self.auth = ...
         return
 
-    def prepare_cookies(self, cookies):
-            self.headers["Cookie"] = cookies
+    # def prepare_cookies(self, cookies):
+    #         self.headers["Cookie"] = cookies
+
+    def prepare_cookies(self, header):
+        cookies = self.headers.get('cookie', '')
+        print("[Request-Cookie]: " + cookies if cookies != '' else "No cookie" )
+        return cookies
