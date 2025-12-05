@@ -49,6 +49,8 @@ class Request():
         "auth", #Added by Duong 26/10/2025
         "body_override", #Added by Duong 26/10/2025
         "content_type_override",
+        "query_string",
+        "auth_register",
     ]
 
     def __init__(self):
@@ -75,6 +77,10 @@ class Request():
 
         self.content_type_override = None
 
+        self.query_string = None
+
+        self.auth_register = False
+
     def extract_request_line(self, request):
         try:
             lines = request.splitlines()
@@ -86,7 +92,6 @@ class Request():
         
             if path == '/':
                 path = '/index.html'
-            #Added by Duong 26/10/2025
             if path == '/test':
                 path = '/test.html'
         except Exception:
@@ -94,23 +99,6 @@ class Request():
 
         
         return method, path, version
-    
-    #Added by Duong 26/10/2025
-    # def extract_and_validate_username_password(self, request):
-    #     form_data = {}
-    #     try:
-    #         header_part, body_part = request.split('\r\n\r\n', 1)
-    #     except ValueError:
-    #         return None
-
-    #     pairs = body_part.split('&')
-    #     for pair in pairs:
-    #         if '=' in pair:
-    #             key, value = pair.split('=', 1)
-    #             form_data[key] = value
-                
-    #     return True if form_data['username'] == "Duong" and form_data['password'] == "14112005" else False
-
              
     def prepare_headers(self, request):
         """Prepares the given HTTP headers."""
@@ -125,51 +113,24 @@ class Request():
     def prepare(self, request, routes=None):
         """Prepares the entire request with the given parameters."""
 
-        # Prepare the request line from the request header
         self.method, self.path, self.version = self.extract_request_line(request)
         print("[Request] {} path {} version {}".format(self.method, self.path, self.version))
         print("[Custom Request]:" + request)
-        #
-        # @bksysnet Preapring the webapp hook with WeApRous instance
-        # The default behaviour with HTTP server is empty routed
-        #
-        # TODO manage the webapp hook in this mounting point
-        #
+
         if not routes == {}:
             self.routes = routes
             self.hook = routes.get((self.method, self.path))
-            #
-            # self.hook manipulation goes here
-            # ...
-            #
 
-        #Added by Duong 26/10/2025
-<<<<<<< HEAD
-            # if self.auth:
-            #     self.method = "GET"
-            #     self.path = "/index.html"
-=======
-        if self.path == '/login':
-            self.auth = self.extract_and_validate_username_password(request)
-
->>>>>>> 87833ae9ade5da67d69ef571f23053fe81d07a76
-        #Added by Duong 26/10/2025
         self.headers = self.prepare_headers(request)
         self.body = self.prepare_body(request)
-        # cookies = self.headers.get('cookie', '')
-        # print("[Request-Cookie]: " + cookies if cookies != '' else "No cookie" )
-        self.headers["Cookie"] = self.prepare_cookies(self.headers)
-            #
-            #  TODO: implement the cookie function here
-            #        by parsing the header            #
 
+        self.headers["Cookie"] = self.prepare_cookies(self.headers)
         return
 
     def prepare_body(self, request):
         form_data = {}
         if self.path == '/connect':
-            # print('[From-Request-Prepare]:')
-            # print(request.splitlines()[0])
+
             try:
                 first_line = request.splitlines()[0]  # "GET /connect?target=Duong HTTP/1.1"
                 _, full_path, _ = first_line.split()
@@ -185,17 +146,6 @@ class Request():
                 return form_data
             except Exception as e:
                 print(f"[Request] Query parse error: {e}")
-        
-        # elif self.data == '/send_message':
-        #     try:
-        #         header_part, body_part = request.split('\r\n\r\n', 1)
-        #         pairs = body_part.split('&')
-        #         for pair in pairs:
-        #             if '=' in pair:
-        #                 key, value = pair.split('=', 1)
-        #                 form_data[key] = value
-        #     except Exception as e:
-        #         print(f"[Request] Body parse error in /send_message: {e}")
 
         else:
             try:

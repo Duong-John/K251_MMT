@@ -71,54 +71,79 @@
       <button id="sendBtn">Send</button>
     </div>
   </div>
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const target = params.get('target');
+    <script>
+    function initializeParams() {
+      let params;
+      if (window._QUERY_STRING) {
+        console.log('[Debug] Using _QUERY_STRING from server:', window._QUERY_STRING);
+        params = new URLSearchParams(window._QUERY_STRING);
+      } else {
+        console.log('Something went wrong');
+        params = new URLSearchParams(window.location.search);
+      }
 
-    document.getElementById('chat-with').textContent = `Chat with ${target}`;
+      const target = params.get('target');
+      const my_port = params.get('my_port');
 
-    const messagesDiv = document.getElementById('messages');
-    const input = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
+      console.log("Chat target =", target);
+      console.log("My port =", my_port);
 
-    //Screen
-    function appendMessage(who, text) {
-        const msg = document.createElement('div');
-        msg.className = `msg ${who}`;
-        msg.textContent = text;
-        messagesDiv.appendChild(msg);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      document.getElementById('chat-with').textContent = `Chat with ${target}`;
+
+      const messagesDiv = document.getElementById('messages');
+      const input = document.getElementById('messageInput');
+      const sendBtn = document.getElementById('sendBtn');
+
+        function appendMessage(who, text) {
+          const msg = document.createElement('div');
+          msg.className = `msg ${who}`;
+          msg.textContent = text;
+          messagesDiv.appendChild(msg);
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function pollMessages() {
+        try {
+          const resp = await fetch(`http://127.0.0.1:${my_port}/poll?target=${encodeURIComponent(target)}`);
+          const data = await resp.json();
+          if (Array.isArray(data) && data.length > 0) {
+            data.forEach(m => appendMessage('other', m.msg));
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }
+
+        sendBtn.addEventListener('click', async () => {
+          const msg = input.value.trim();
+          if (!msg) return;
+
+          appendMessage('me', msg);
+          input.value = '';
+
+          try {
+            const response = await fetch(`http://127.0.0.1:${my_port}/send-peer?target=${encodeURIComponent(target)}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ msg })
+            });
+
+            const text = await response.text();
+            console.log('[MiniServer Reply]', text);
+          } catch (err) {
+            console.error('Send failed:', err);
+            appendMessage('other', '[Error] Cannot send message.');
+          }
+        });
+      setInterval(pollMessages, 1000);
     }
 
-    sendBtn.addEventListener('click', async () => {
-        const msg = input.value.trim();
-        if (!msg) return;
-        
-        appendMessage('me', msg);
-        input.value = '';
-
-        try {
-        const response = await fetch('http://localhost:8000/send_message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            credentials: 'include',
-            body: `target=${encodeURIComponent(target)}&msg=${encodeURIComponent(msg)}`
-        });
-
-        if (!response.ok) {
-            appendMessage('other', '[Error] Failed to send message.');
-            console.error('HTTP error', response.status);
-            return;
-        }
-
-        const result = await response.text();
-        console.log('[Server reply]', result);
-        } catch (err) {
-        appendMessage('other', '[Error] Cannot send message.');
-        console.error('Send error:', err);
-        }
-    });
+    document.addEventListener('DOMContentLoaded', initializeParams);
     </script>
+
+
+</body>
+</html>
 
   <!-- <script>
     const params = new URLSearchParams(window.location.search);
@@ -173,5 +198,3 @@
     }
     });
   </script> -->
-</body>
-</html>

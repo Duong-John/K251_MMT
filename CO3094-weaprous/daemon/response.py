@@ -188,28 +188,21 @@ class Response():
         return base_dir
 
 
-    def build_content(self, path, base_dir):
-        """
-        Loads the objects file from storage space.
-
-        :params path (str): relative path to the file.
-        :params base_dir (str): base directory where the file is located.
-
-        :rtype tuple: (int, bytes) representing content length and content data.
-        """
-
+    def build_content(self, path, base_dir, query_string=None):
         filepath = os.path.join(base_dir, path.lstrip('/'))
-
         print("[Response] serving the object at location {}".format(filepath))
-            #
-            #  TODO: implement the step of fetch the object file
-            #        store in the return value of content
-            #
-        
-        # Added by Duong 23/10/2025
+
         if str.find(filepath, "images") == -1:
             with open(filepath, 'r') as f:
                 content = f.read()
+            if query_string:
+                print("[Respone]: Containing Qerry String")
+                print(query_string)
+                inject_script = f"\n<script>window._QUERY_STRING = '{query_string}';</script>"
+                if '</body>' in content:
+                    content = content.replace('</body>', inject_script + '</body>')
+                else:
+                    content += '\n' + inject_script
             return len(content), content.encode('utf-8')
         with open(filepath, 'rb') as f:
                 content = f.read()
@@ -219,14 +212,6 @@ class Response():
 
 
     def build_response_header(self, request):
-        """
-        Constructs the HTTP response headers based on the class:`Request <Request>
-        and internal attributes.
-
-        :params request (class:`Request <Request>`): incoming request object.
-
-        :rtypes bytes: encoded HTTP response header.
-        """
         reqhdr = request.headers
         rsphdr = self.headers
 
@@ -238,11 +223,6 @@ class Response():
                 "Cache-Control": "no-cache",
                 "Content-Type": "{}".format(self.headers['Content-Type']),
                 "Content-Length": "{}".format(len(self._content)),
-                # "Cookie": "{}".format(reqhdr.get("Cookie", "sessionid=xyz789")), #dummy cooki
-        #
-        # TODO prepare the request authentication
-        #
-	# self.auth = ...
                 "Date": "{}".format(datetime.datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S GMT")),
                 "Max-Forward": "10",
                 "Pragma": "no-cache",
@@ -250,33 +230,27 @@ class Response():
                 "Warning": "199 Miscellaneous warning",
                 "User-Agent": "{}".format(reqhdr.get("User-Agent", "Chrome/123.0.0.0")),
             }
-        #Added by Duong 26/10/2025
+
         if request.auth:
-            if headers.get("Set-Cookie", ' ') == ' ':
-                headers["Set-Cookie"] = "{}".format("sessionid=xyz789")
+            print('[Respone]: Request AUTH is TRue')
+            if reqhdr.get("Cookie", '') == '':
+                username = request.body.get('username', '')
+                if username != '':
+                    print('[Respone]: Attempting to set cookies with username:')
+                    print(username)
+                    headers["Set-Cookie"] = "{}".format(username)
         
         if request.body_override:
-            headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+
+            headers["Access-Control-Allow-Origin"] = "http://" + reqhdr.get('host').split(":")[0] + ":3000"
             headers["Access-Control-Allow-Credentials"] = "true"
             headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
             headers["Access-Control-Allow-Headers"] = "Content-Type"
-        # Header text alignment
-            #
-            #  TODO: implement the header building to create formated
-            #        header from the provied headers
-            #
 
-        #Added by Duong 23/10/2025
         fmt_header = "HTTP/1.1 200 OK\r\n"
         for key, value in headers.items():
             fmt_header +=  f"{key}: {value}\r\n"
         fmt_header += "\r\n"
-        
-        #
-        # TODO prepare the request authentication
-        #
-	# self.auth = ...
-
         return str(fmt_header).encode('utf-8')
 
 
@@ -321,47 +295,35 @@ class Response():
 
 
     def build_response(self, request):
-        """
-        Builds a full HTTP response including headers and content based on the request.
-
-        :params request (class:`Request <Request>`): incoming request object.
-
-        :rtype bytes: complete HTTP response using prepared headers and content.
-        """
         if request.body_override:
-            
             if request.headers["Cookie"] == '':
-                print('--------------------------------------------')
                 return self.build_unauthorized()
             print("[Response] Building a dynamic response from hook.")
             self._content = request.body_override
             self.headers['Content-Type'] = request.content_type_override
             self._header = self.build_response_header(request) 
             return self._header + self._content
+
+        if request.path.endswith('login'):
+            if not request.auth:
+                return self.build_unauthorized()
+            else:
+                request.path = '/index.html'
+                request.method = 'GET'
         
-        if request.path.endswith('login') or request.path.endswith('register'):
-            if not request.auth:
-                return self.build_unauthorized()
-            else:
+        if request.path.endswith('register'):
+            if request.auth_register:
                 request.path = '/index.html'
                 request.method = 'GET'
-        #Added by Duong 26/10/2025
-		if request.path.endswith('login'):
-            if not request.auth:
-                return self.build_unauthorized()
             else:
-                request.path = '/index.html'
-                request.method = 'GET'
+                return self.build_unauthorized()
         path = request.path
         
         
         if path.endswith('test.html'):
-            # print("[Respone-Build]:")
-            # print(self.cookies)
-            # if self.cookies == {}:
-            #     return self.build_unauthorized()
             if request.headers["Cookie"] == '':
                 return self.build_unauthorized()
+            request.query_string = "host=" + request.headers.get('host').split(":")[0]
 
         mime_type = self.get_mime_type(path)
         print("[Response] {} path {} mime_type {}".format(request.method, request.path, mime_type))
@@ -373,10 +335,7 @@ class Response():
             base_dir = self.prepare_content_type(mime_type = 'text/html')
         elif mime_type == 'text/css':
             base_dir = self.prepare_content_type(mime_type = 'text/css')
-        #
-        # TODO: add support objects
-        #
-        #Added by Duong 23/10/2025
+
         elif mime_type == 'image/x-icon':
             base_dir = self.prepare_content_type(mime_type = 'image/x-icon')
         elif mime_type == 'image/png':
@@ -384,7 +343,7 @@ class Response():
         else:
             return self.build_notfound()
 
-        c_len, self._content = self.build_content(path, base_dir)
+        c_len, self._content = self.build_content(path, base_dir, request.query_string)
         self._header = self.build_response_header(request)
 
         return self._header + self._content

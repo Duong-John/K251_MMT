@@ -116,30 +116,33 @@ class HttpAdapter:
             
 
         req.prepare(msg, routes)
-        # print("[HTTP-DEMO]:")
-        # print(addr)
         if not routes:
             print("[Error]: Routes map is empty.")
         # Handle request hook
         if req.hook:
             print("[HttpAdapter] hook in route-path METHOD {} PATH {}".format(req.hook._route_path,req.hook._route_methods))
 
-            req.body['IP'] = self.connaddr[0]
-            req.body['Port'] = self.connaddr[1]
+            req.body['Ip_old'] = self.connaddr[0]
+            req.body['Port_old'] = self.connaddr[1]
 
             return_value = req.hook(req.headers, req.body)
+            if isinstance(return_value, str) and return_value.startswith('/chat.html'):
+                print("Yes")
+                req.path = '/chat.html'
+                req.query_string = return_value.split('?', 1)[1] if '?' in return_value else ''
             if type(return_value) is tuple:
                 print(f"[HttpAdapter] Dynamic route detected, content_type={return_value[0]}")
                 # req.path = "/api/dynamic_response.json"      
                 req.body_override = return_value[1].encode('utf-8')  
                 req.content_type_override = return_value[0]  
-            elif return_value == 'Login Success' or return_value == 'Register Success':
+            elif return_value == 'Login Success':
                 req.auth = True
-            elif return_value == 'Login Fail' or return_value == 'Register Fail':
+            elif return_value == 'Login Fail':
                 req.auth = False
-            elif return_value == '/chat.html':
-                req.path = return_value
-            
+            elif return_value == 'Register Success':
+                req.auth_register = True
+            elif return_value == 'Register Fail': 
+                req.auth_register = False
             #
             # TODO: handle for App hook here
             #

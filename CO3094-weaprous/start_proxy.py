@@ -42,7 +42,7 @@ import re
 from urllib.parse import urlparse
 from collections import defaultdict
 
-from daemon import create_proxy
+from daemon import proxy
 
 PROXY_PORT = 3000
 
@@ -74,7 +74,7 @@ def parse_virtual_hosts(config_file):
         proxy_map[host] = map
 
         # Find dist_policy if present
-        policy_match = re.search(r'dist_policy\s+(\w+)', block)
+        policy_match = re.search(r'dist_policy\s+([\w-]+)', block)
         if policy_match:
             dist_policy_map = policy_match.group(1)
         else: #default policy is round_robin
@@ -96,8 +96,8 @@ def parse_virtual_hosts(config_file):
         else:
             routes[host] = (proxy_map.get(host,[]), dist_policy_map)
 
-    for key, value in routes.items():
-        print(key, value)
+    # for key, value in routes.items():
+    #     print(key, value)
     return routes
 
 
@@ -125,4 +125,10 @@ if __name__ == "__main__":
 
     routes = parse_virtual_hosts("config/proxy.conf")
 
-    create_proxy(ip, port, routes)
+    with proxy.connections_lock:
+        for hostname, (server_list, policy) in routes.items():
+            if isinstance(server_list, list):
+                
+                proxy.server_connections[hostname] = {server: 0 for server in server_list}
+                
+    proxy.create_proxy(ip, port, routes)

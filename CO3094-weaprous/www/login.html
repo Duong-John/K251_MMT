@@ -5,21 +5,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login | HCMUT Expression Chat</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .auth-form {
+      display: flex; 
+      flex-direction: column; 
+      gap: 15px; 
+    }
+
+    .form-row {
+      display: flex; 
+      gap: 15px; 
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column; 
+      flex: 1; 
+    }
+
+    .auth-form label {
+      margin-bottom: 5px; 
+    }
+    
+    .auth-form input[type="text"],
+    .auth-form input[type="password"] {
+      width: 100%;
+      box-sizing: border-box; 
+    }
+
+    .auth-form .btn.login {
+      margin-top: 10px;
+    }
+  </style>
+
 </head>
 
 <body>
   <div class="container form-container">
     <h1>Login</h1>
     <p>Welcome back! Please enter your credentials to continue.</p>
-
     <form method="POST" action="/login" class="auth-form">
-      <label>Username</label>
-      <input name="username" type="text" placeholder="Enter username" required>
 
-      <label>Password</label>
-      <input name="password" type="password" placeholder="Enter password" required>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="username-input">Username</label>
+          <input id="username-input" name="username" type="text" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label for="password-input">Password</label>
+          <input id="password-input" name="password" type="password" placeholder="Enter password" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="ip-input">IP</label>
+          <input id="ip-input" name="Ip" type="text" placeholder="Enter IP" required>
+        </div>
+        <div class="form-group">
+          <label for="port-input">Port</label>
+          <input id="port-input" name="Port" type="text" placeholder="Enter Port" required>
+        </div>
+      </div>
 
       <input type="submit" value="Login" class="btn login">
+
     </form>
 
     <p class="small-text">Don't have an account?
