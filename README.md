@@ -22,3 +22,8 @@ Note: Thay đổi 26/10/2025 (Vấn đề về Login và Cookie)
     1. Nếu domain hiện tại là /login, mà trước đó bên Request là xác thực thất bại (request.auth == False) thì trả về lỗi 401.
     2. Nếu domain hiện tại là /test (/test.html), mà không tìm thấy cookie, thì trả về lỗi 401.
 
+Note final: 
+ Chạy start_server ở các cổng 8000, 8001, 8002,.... chính là create một backend pool.
+ Chỉnh proxy.conf để chọn giải thuật cân bằng tải mình muốn round-robin hoặc least-conn, thêm danh sách các backend với port tương ứng đã tạo vào host đó
+ Khi một máy muốn nhận tin nhắn từ peer kia (đang xét trong peer-to-peer) thì trước hết phải chạy client_mini_server.py để listen được tin nhắn, còn server chỉ đóng vai trò giới thiệu port và ip của peer thôi.
+ Nhớ chạy start_proxy.py.
