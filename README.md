@@ -27,7 +27,7 @@ Note final:
  Chạy start_server ở các cổng 8000, 8001, 8002,.... chính là create một backend pool.
  Chỉnh proxy.conf để chọn giải thuật cân bằng tải mình muốn round-robin hoặc least-conn, thêm danh sách các backend với port tương ứng đã tạo vào host đó
  Khi một máy muốn nhận tin nhắn từ peer kia (đang xét trong peer-to-peer) thì trước hết phải chạy client_mini_server.py để listen được tin nhắn, còn server chỉ đóng vai trò giới thiệu port và ip của peer thôi.
- Nhớ chạy start_proxy.py.
+ Nhớ chạy start_proxy.py. Lưu ý khi chạy stat_sampleapp.py điều chỉnh tham số --server-port để nó chạy trên port được chỉ định (mặc định 8000), khi chạy client_mini_server.py thì chỉnh tham số --server-port và --name thành port và name mình "ĐĂNG NHẬP" lúc login.
 
 *Giải thích:
  - prooxy.py và start_proxy.py:
