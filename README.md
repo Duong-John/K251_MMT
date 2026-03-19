@@ -1,3 +1,4 @@
+> **Note**: This is the upgraded and latest version of this project [https://github.com/Duong-John/HCMUT-Computer-Network-Assignment-1-WEBRTC-Upgraged]
 Note: Thay đổi 23/10/2025
 - proxy.py: ở hàm run_proxy, khi proxy chạy, nó sẽ listen 50 client là nhiều nhất, khi đó, proxy sẽ có ip và port của nó, khi có client, nó sẽ có luôn conn và adrr của client. Dòng 202 thêm vào hàm handle_client để xử lý khi có client đến. Lưu ý: Chưa hiểu ý cách tạo "Multi-thread" ở đây cho lắm vì thầy dùng "while True" chạy tuần tự.
 - back_end.py: Ta có từ proxy -> proxy.handle_client -> proxy.forward_request -> backend có port là 9000. Khi backend listen bắt được request được forward từ trên proxy xuống, nó tiến hành gọi cho backend chạy, và do mỗi proxy sẽ điều hướng tới 1 backend trong backend pool tương ứng, ta cũng phải handle_client những request truyền từ trên proxy xuống (Dòng 93).
